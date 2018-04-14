@@ -150,7 +150,9 @@ void loop() {
     
   if (Serial.available() > 0 ) {
    char  x=Serial.read();
+  Serial.print("Please Choose your Application, 'E' for Easy Driving Application , 'U' for Line Follower Application");
   if (x=='E'){ //Easy Driving Application
+    Serial.print("Easy Driving Application Activated");
     while ( x!='Z') {
       x=Serial.read();
       while (x == 'F') {
@@ -201,8 +203,11 @@ void loop() {
         steady();
       }
     }
+    Serial.print("Easy Driving Application Terminated");
+
   }
   else if (x=='U') { //Line Tracking Application
+    Serial.print("Line Follower Application Activated");
     speed = 90;
     x = Serial.read();
     while(x!='Z') {
@@ -212,20 +217,22 @@ void loop() {
       int r = digitalRead(RIR);
 
       if (c ==  HIGH) {
-        Serial.print("loool222");
-
         forward(speed);
       }
       else {
         if (l ==  HIGH) {
         rotate_left(speed);
         }
-        if (r == HIGH) {
+        else if (r == HIGH) {
         rotate_right(speed);
+        }
+        else {
+          steady();
         }
      }
 
    }
+   speed=255;
   }
   if (x == '0') {
         steady();
