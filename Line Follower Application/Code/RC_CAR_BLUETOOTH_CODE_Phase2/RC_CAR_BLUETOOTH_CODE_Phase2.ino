@@ -6,6 +6,7 @@ int ENA = 9;
 int ENB = 3;
 int RIR =2;
 int CIR =6;
+int state=0;
 int LIR =10;  
 int speed = 255;
 int trigPin = 11;
@@ -218,21 +219,30 @@ void loop() {
 
       if (c ==  HIGH) {
         forward(speed);
+        state='f';
       }
       else {
         if (l ==  HIGH) {
-        rotate_left(speed);
+        rotate_left(180);
+        state='l';
         }
         else if (r == HIGH) {
-        rotate_right(speed);
+        rotate_right(180);
+        state='r';
         }
-        else {
-          steady();
+        else{
+          switch(state) {
+            case 'f': forward(speed);
+            break;
+            case 'l': rotate_left(180);
+            break;
+            case 'r': rotate_right(180);
+            break;
+          }
         }
      }
 
    }
-   speed=255;
   }
   if (x == '0') {
         steady();
