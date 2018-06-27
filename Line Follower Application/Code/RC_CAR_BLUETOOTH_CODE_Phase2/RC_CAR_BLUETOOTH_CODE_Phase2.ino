@@ -9,6 +9,8 @@ int CIR =6;
 int state=0;
 int LIR =10;  
 int speed = 255;
+int calibDist= 100;
+int velocity=0;
 int trigPin = 11;
 int echoPin = 12;
 float lol = 0;
@@ -151,9 +153,9 @@ void loop() {
     
   if (Serial.available() > 0 ) {
    char  x=Serial.read();
-  Serial.print("Please Choose your Application, 'E' for Easy Driving Application , 'U' for Line Follower Application");
+  Serial.print("Please Choose your Application, 'E' for Easy Driving Application , 'U' for Line Follower Application \n");
   if (x=='E'){ //Easy Driving Application
-    Serial.print("Easy Driving Application Activated");
+    Serial.print("Easy Driving Application Activated \n");
     while ( x!='Z') {
       x=Serial.read();
       while (x == 'F') {
@@ -204,7 +206,7 @@ void loop() {
         steady();
       }
     }
-    Serial.print("Easy Driving Application Terminated");
+    Serial.print("Easy Driving Application Terminated \n");
 
   }
   else if (x=='U') { //Line Tracking Application
@@ -243,6 +245,63 @@ void loop() {
      }
 
    }
+     Serial.print("Line Follower Application Terminated \n");
+
+  }
+  else if (x=='P') { //Precise Movement Application Activated
+    Serial.print("Precise Movement Application Activated \n 'C' for circle \n 'S' for square");
+    velocity = 200;
+    x = Serial.read();
+    while(x!='Z') {
+      Serial.print("Please Enter The Distance in cm \n");
+      x = Serial.read();
+      int d = Serial.parseInt();
+      Serial.print("Please Enter The Distance in cm \n");
+      x = Serial.read();
+      int a = Serial.parseInt();
+      switch(x) {
+        case 'C':
+        break;
+        case 'S':
+        break;
+        default: forward(180);
+                 delay( (d/velocity) * 1000);
+      
+      }
+     
+ 
+   }
+    Serial.print("Precise Movement Application Terminated \n");
+
+  }
+  else if (x=='C') { //Calibration Activated
+    Serial.print("Calibration Activated \n");
+    speed = 200;
+    x = Serial.read();
+    forward(200);
+    int calibAct=0;
+    int time1;
+    int time2;
+    while(x!='Z') {
+      x = Serial.read();
+      int c = digitalRead(CIR);
+      if (c == HIGH) {
+       if( calibAct == 0) {
+       int calibAct=1;
+       time1 = millis();
+       Serial.print("Fisrt Line \n");
+       }
+       else if( calibAct == 1) {
+       int calibAct=0;
+       time2 = time1 ;
+       Serial.print("Second Line \n");
+       break;
+       }  
+      }
+   }
+   Serial.print("Fisrt Line \n");
+    velocity = calibDist / time2;
+    Serial.print("Calibration Terminated \n");
   }
   if (x == '0') {
         steady();
