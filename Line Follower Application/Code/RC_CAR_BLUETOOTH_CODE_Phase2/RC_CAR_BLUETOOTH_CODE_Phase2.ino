@@ -10,12 +10,28 @@ int state=0;
 int LIR =10;  
 int speed = 255;
 int calibDist= 100;
-int velocity=0;
+int velocity;
 int trigPin = 11;
 int echoPin = 12;
 float lol = 0;
+
+////
+const int D = 6;
+const int dataIN = 13; //IR sensor INPUT
+unsigned long prevmillis; // To store time
+unsigned long duration; // To store time difference
+int rpm; // RPM value
+boolean currentstate; // Current state of IR input scan
+boolean prevstate; // State of IR sensor in previous scan
+
+
 void setup() {
   Serial.begin(9600);
+  //IR SETUP
+  pinMode(dataIN,INPUT);       
+  prevmillis = 0;
+  prevstate = LOW;
+  
   //PINMODE SETUP
   pinMode(trigPin,OUTPUT);
   pinMode(echoPin,INPUT);
@@ -150,10 +166,9 @@ bool checkObstacle(int trigPin , int echoPin) {
 }
 
 void loop() {
-    
   if (Serial.available() > 0 ) {
-   char  x=Serial.read();
-  Serial.print("Please Choose your Application, 'E' for Easy Driving Application , 'U' for Line Follower Application \n");
+  Serial.print("Please Choose your Application, 'E' for Easy Driving Application , 'U' for Line Follower Application, 'P' for Precise Movement, 'C' for Calibration \n");
+  char x = Serial.read();
   if (x=='E'){ //Easy Driving Application
     Serial.print("Easy Driving Application Activated \n");
     while ( x!='Z') {
@@ -210,7 +225,7 @@ void loop() {
 
   }
   else if (x=='U') { //Line Tracking Application
-    Serial.print("Line Follower Application Activated");
+    Serial.print("Line Follower Application Activated \n");
     speed = 90;
     x = Serial.read();
     while(x!='Z') {
@@ -249,59 +264,65 @@ void loop() {
 
   }
   else if (x=='P') { //Precise Movement Application Activated
-    Serial.print("Precise Movement Application Activated \n 'C' for circle \n 'S' for square");
-    velocity = 200;
+    Serial.print("Precise Movement Application Activated \n 'C' for circle \n 'S' for square \n any key for distance \n");
+    while (true){
+      if(Serial.available() > 0)
+      break;
+    }
+    if (Serial.available() > 0) {
     x = Serial.read();
-    while(x!='Z') {
-      Serial.print("Please Enter The Distance in cm \n");
-      x = Serial.read();
-      int d = Serial.parseInt();
-      Serial.print("Please Enter The Distance in cm \n");
-      x = Serial.read();
-      int a = Serial.parseInt();
       switch(x) {
         case 'C':
         break;
         case 'S':
         break;
-        default: forward(180);
-                 delay( (d/velocity) * 1000);
-      
-      }
-     
- 
-   }
+        default: Serial.print("Please Enter The Distance in cm \n");  
+        while (true){
+          if(Serial.available() > 0){
+            int d = Serial.parseInt();
+            Serial.print(d);
+            Serial.print(d/velocity);
+            float time00 = (d/velocity)* 1000;
+            forward(255);
+            delay(time00);
+            steady();
+            break; 
+          }
+         
+        }
+        
+    }
+    }
+   
     Serial.print("Precise Movement Application Terminated \n");
 
   }
   else if (x=='C') { //Calibration Activated
     Serial.print("Calibration Activated \n");
-    speed = 200;
     x = Serial.read();
-    forward(200);
-    int calibAct=0;
-    int time1;
-    int time2;
+    forward(255);
     while(x!='Z') {
       x = Serial.read();
-      int c = digitalRead(CIR);
-      if (c == HIGH) {
-       if( calibAct == 0) {
-       int calibAct=1;
-       time1 = millis();
-       Serial.print("Fisrt Line \n");
+      // RPM Measurement
+      currentstate = digitalRead(dataIN); // Read IR sensor state
+ if( prevstate != currentstate) // If there is change in input
+   {
+     if( currentstate == HIGH ) // If input only changes from LOW to HIGH
+       {
+        Serial.print("Change Found . . .");
+         duration = ( micros() - prevmillis ); // Time difference between revolution in microsecond
+         rpm = (60000000/duration); // rpm = (1/ time millis)*1000*1000*60;
+         prevmillis = micros(); // store time for nect revolution calculation
        }
-       else if( calibAct == 1) {
-       int calibAct=0;
-       time2 = time1 ;
-       Serial.print("Second Line \n");
-       break;
-       }  
-      }
    }
-   Serial.print("Fisrt Line \n");
-    velocity = calibDist / time2;
-    Serial.print("Calibration Terminated \n");
+  prevstate = currentstate; // store this scan (prev scan) data for next scan
+  
+   }
+   steady();
+    velocity = 3.14159*(D)*(rpm/60); // speed in cm/s
+    Serial.print("Velocity = ");
+    Serial.print(velocity);
+    Serial.print("\n Calibration Terminated \n");
   }
   if (x == '0') {
         steady();
