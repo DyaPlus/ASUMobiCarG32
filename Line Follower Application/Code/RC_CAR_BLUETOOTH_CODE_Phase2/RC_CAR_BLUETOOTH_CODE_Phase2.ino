@@ -300,8 +300,7 @@ void loop() {
   else if (x=='C') { //Calibration Activated
     Serial.print("Calibration Activated \n");
     x = Serial.read();
-    forward(255);
-    while(x!='Z') {
+    /*while(x!='Z') {
       x = Serial.read();
       // RPM Measurement
       currentstate = digitalRead(dataIN); // Read IR sensor state
@@ -321,9 +320,22 @@ void loop() {
    steady();
     velocity = 3.14159*(D)*(rpm/60); // speed in cm/s
     Serial.print("Velocity = ");
-    Serial.print(velocity);
+    Serial.print(velocity);*/
+       float z = get_distance(trigPin,echoPin);
+       Serial.print("Distance \n");
+       Serial.print(z);
+        delay(100);
+       forward(255);
+       delay(2000);
+       steady();
+       delay(100);
+       z = z - get_distance(trigPin,echoPin);
+       velocity = z/2;
+       Serial.print("Velocity = ");
+       Serial.print(velocity);
+       
+    }
     Serial.print("\n Calibration Terminated \n");
-  }
   if (x == '0') {
         steady();
       }
