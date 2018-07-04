@@ -30,7 +30,6 @@ void setup() {
   //IR SETUP
   pinMode(dataIN,INPUT);       
   prevmillis = 0;
-  prevstate = LOW;
   
   //PINMODE SETUP
   pinMode(trigPin,OUTPUT);
@@ -121,6 +120,26 @@ void steady() {
   digitalWrite(IN4, LOW);
 }
 
+void rotate_wheels(int n) {
+    prevstate = LOW;
+  int counter = 0;
+  while (true) {
+      currentstate = digitalRead(dataIN); // Read IR sensor state
+      if( prevstate != currentstate) // If there is change in input
+          {
+        if( currentstate == HIGH ) // If input only changes from LOW to HIGH
+       {
+        Serial.print("Change Found . . .");
+        counter++;
+        if (counter == n) {
+          break;
+        }
+       }
+   }
+    prevstate = currentstate; // store this scan (prev scan) data for next scan
+  
+   }
+}
 void rotate_left_us(int speed) {
   max_left(speed);
 }
@@ -281,11 +300,17 @@ void loop() {
           if(Serial.available() > 0){
             int d = Serial.parseInt();
             Serial.print(d);
+            // Velocity
             Serial.print(d/velocity);
-            float time00 = (d/velocity)* 1000;
-            forward(255);
+            float time00 = ((float)d/(float)velocity)* 1000;
+            forward(200);
             delay(time00);
             steady();
+            //IR Mode
+            /*d = d/5;
+            forward(200);
+            rotate_wheels((int)d);
+            steady();*/
             break; 
           }
          
@@ -321,21 +346,25 @@ void loop() {
     velocity = 3.14159*(D)*(rpm/60); // speed in cm/s
     Serial.print("Velocity = ");
     Serial.print(velocity);*/
+     
+    // UltraSonic Mode to get velocity
+    
        float z = get_distance(trigPin,echoPin);
        Serial.print("Distance \n");
        Serial.print(z);
-        delay(100);
-       forward(255);
-       delay(2000);
+        delay(1000);
+       forward(200);
+       delay(1000);
        steady();
-       delay(100);
+       delay(1000);
        z = z - get_distance(trigPin,echoPin);
-       velocity = z/2;
+       velocity = z;
        Serial.print("Velocity = ");
-       Serial.print(velocity);
-       
-    }
-    Serial.print("\n Calibration Terminated \n");
+       Serial.print(velocity); 
+       Serial.print("\n Calibration Terminated \n");
+
+   }
+   
   if (x == '0') {
         steady();
       }
